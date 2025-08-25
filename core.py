@@ -45,7 +45,7 @@ def lex_string(code: str) -> type[str, str]:
     if peek(code) == "'": return str(result), code[1:]
     return result, code
 
-SPECIAL = "():,"
+SPECIAL = "():,{}"
 def lex_word(code: str) -> type[Word, str]:
     result = ""
     while peek(code) is not None and ord(peek(code)) > 33 and peek(code) not in SPECIAL and peek(code) not in NUMBERS:
@@ -53,8 +53,7 @@ def lex_word(code: str) -> type[Word, str]:
     return Word(result), code
 
 def lex(code: str, errors: list[Err]) -> list[Token]:
-    result = list()
-    result_stack = list()
+    result, result_stack, code_stack = list(), list(), list()
     while len(code) > 0:
         match code[0]:
             case n if n in NUMBERS:
@@ -64,6 +63,18 @@ def lex(code: str, errors: list[Err]) -> list[Token]:
                 value, code = lex_string(code)
                 result.append(value)
             case k if k in ':,': result.append(Keyword(code[0])); code = code[1:]
+            case '{':
+                code_stack.append(result)
+                result = list()
+                code = code[1:]
+            case '}':
+                code = code[1:]
+                if len(code_stack) <= 0:
+                    errors.append((((0, 0), (0, 0)), "Unopened brace!"))
+                    continue
+                expression = result
+                result = code_stack.pop()
+                result.append(expression)
             case '(':
                 result_stack.append(result)
                 result = list()
@@ -85,6 +96,8 @@ def lex(code: str, errors: list[Err]) -> list[Token]:
                 result.append(value)
     if len(result_stack) > 0:
         errors.append((((0, 0), (0, 0)), "Unclosed bracket!"))
+    if len(code_stack) > 0:
+        errors.append((((0, 0), (0, 0)), "Unclosed brace!"))
     result.append(Keyword('\n'))
 
     return result
@@ -115,7 +128,7 @@ def check(tokens: list[Token], lexicon: dict[str, CallableWord], types: list[typ
         match token:
             case Word(word):
                 if word not in lexicon.keys():
-                    errors.append((((0,0), (0,0)), f"Word {ansi(word, 36)} is not in lexicon."))
+                    errors.append((((0,0), (0,0)), f"Word {ansi(word, 93)} is not in lexicon."))
                     return
                 word_types = lexicon[word][0]
                 if len(types) < len(word_types):

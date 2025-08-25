@@ -1,5 +1,6 @@
 import core
 from core import word
+from utils import format_list
 
 builtins = {}
 
@@ -22,7 +23,7 @@ def dup[T](a: T) -> (T, T): return a, a
 def say(text: str) -> None: print(text)
 
 @word(builtins, want_stack = True)
-def peek(stack: list[core.Value]) -> None: print(stack)
+def peek(stack: list[core.Value]) -> None: print(format_list(stack))
 
 @word(builtins)
 def pop(_: int) -> None: pass
