@@ -91,7 +91,6 @@ def lex(code: str, errors: list[Err]) -> list[Token]:
 
 def rewrite(tokens: list[Token], errors: list[Err]) -> list[Token]:
     result = list()
-    function_stack = list()
     current_function: Word | None = None
     for token in tokens:
         match token:
@@ -104,7 +103,7 @@ def rewrite(tokens: list[Token], errors: list[Err]) -> list[Token]:
                     case '\n':
                         if current_function is not None: result.append(current_function)
             case Brackets(expression):
-                for expr in expression:
+                for expr in rewrite(expression, errors):
                     result.append(expr)
             case t:
                 result.append(t)
