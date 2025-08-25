@@ -1,0 +1,17 @@
+func fib {
+    --> n
+    if n == 0 || n == 1 {n ret}
+    n - 1 fib + (n - 2 fib)
+}
+
+func fib {
+    --> n
+    n 0 == n 1 == || {n ret} if
+    n - 1 fib n - 2 fib add
+}
+
+func fib {
+    --> n
+    n 0 is n 1 is or if {n ret}
+    n 1 sub fib n 2 sub fib add
+}
