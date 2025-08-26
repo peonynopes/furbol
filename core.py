@@ -50,7 +50,7 @@ def lex(code: str, errors: list[Err]) -> list[utils.Token]:
             case "'":
                 value, code = lex_string(code)
                 result.append(value)
-            case k if k in ':,': result.append(Keyword(code[0])); code = code[1:]
+            case k if k in ':;': result.append(Keyword(code[0])); code = code[1:]
             case '{':
                 code_stack.append(result)
                 result = list()
@@ -94,7 +94,7 @@ def rewrite(tokens: list[utils.Token], errors: list[Err]) -> list[utils.Token]:
             case Keyword(keyword):
                 match keyword:
                     case ':': current_function = result.pop()
-                    case ',':
+                    case ';':
                         if current_function is None: errors.append((((0, 0), (0, 0)), "Unexpected comma.")); continue
                         result.append(current_function); current_function = None
                     case '\n':

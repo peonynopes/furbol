@@ -36,7 +36,7 @@ Due to being concatenative application is the default.
 ```
 This "reverse" function calling syntax may be
 confusing to new users or not fitting in all contexts,
-therefore Furbol has a Smalltalk like `:` symbol that
+therefore Furbol uses a Smalltalk like `:` symbol that
 can be used to fully or partially reverse the way
 functions are called.
 
@@ -44,7 +44,7 @@ functions are called.
 say: 'meow'
 1 add: 2
 add: 1 2
-add: 1 2, add: 3 
+add: 1 2; add: 3 
 ```
 
 #### Rewriting details
@@ -54,7 +54,7 @@ is rewritten into a fully concatenative form.
 before the colon is taken and pushed all the way towards
 the end of the line (inside braces and parentheses the
 closing brace or bracket is treated as the end of line)
-or until a comma. This allows for chaining multiple
+or until a semicolon. This allows for chaining multiple
 functions even when one or many of them are using `:`.
 
 ### Operators (Not Implemented!)
