@@ -2,7 +2,7 @@ from __future__ import  annotations
 
 from typing import Callable
 from  types import FunctionType
-from utils import ansi, format_types, Word, Keyword, Brackets
+from utils import ansi, format_types, Word, Keyword
 import utils
 
 type Pos = tuple[int, int]
@@ -61,6 +61,7 @@ def lex(code: str, errors: list[Err]) -> list[utils.Token]:
                     errors.append((((0, 0), (0, 0)), "Unopened brace!"))
                     continue
                 expression = result
+                expression.append(Keyword('\n'))
                 result = code_stack.pop()
                 result.append(([], [], expression))
             case '(':
@@ -73,8 +74,9 @@ def lex(code: str, errors: list[Err]) -> list[utils.Token]:
                     errors.append((((0, 0), (0, 0)), "Unopened bracket!"))
                     continue
                 expression = result
+                expression.append(Keyword('\n'))
                 result = result_stack.pop()
-                result.append(Brackets(expression))
+                result.append(expression)
             case '\n': result.append(Keyword('\n')); code = code[1:]
             case s if s in SPECIAL:
                 errors.append((((0,0), (0,0)), "Special characters are currently not supported.")); code = code[1:]
@@ -99,7 +101,7 @@ def rewrite(tokens: list[utils.Token], errors: list[Err]) -> list[utils.Token]:
                         result.append(current_function); current_function = None
                     case '\n':
                         if current_function is not None: result.append(current_function); current_function = None
-            case Brackets(expression):
+            case list(expression):
                 for expr in rewrite(expression, errors):
                     result.append(expr)
             case t:

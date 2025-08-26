@@ -11,11 +11,8 @@ class Word: word: str
 @dataclass
 class Keyword: word: str
 
-@dataclass
-class Brackets: tokens: list[Token]
-
 type Value = int | float | str | bool | tuple[list[type], list[type], list[Token]]
-type Token = Value | Word | Keyword | Brackets
+type Token = Value | Word | Keyword | list[Token]
 
 def format_value(value: Value) -> str:
     match value:
@@ -37,7 +34,7 @@ def format_token(token: Token) -> str:
             return ansi(word, 93)
         case Keyword(word):
             return ansi(word, 90)
-        case Brackets(expression):
+        case list(expression):
             return f'({format_list(expression)})'
         case d:
             return format_value(d)
