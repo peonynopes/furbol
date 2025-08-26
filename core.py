@@ -61,7 +61,6 @@ def lex(code: str, errors: list[Err]) -> list[utils.Token]:
                     errors.append((((0, 0), (0, 0)), "Unopened brace!"))
                     continue
                 expression = result
-                expression.append(Keyword('\n'))
                 result = code_stack.pop()
                 result.append(([], [], expression))
             case '(':
@@ -74,7 +73,6 @@ def lex(code: str, errors: list[Err]) -> list[utils.Token]:
                     errors.append((((0, 0), (0, 0)), "Unopened bracket!"))
                     continue
                 expression = result
-                expression.append(Keyword('\n'))
                 result = result_stack.pop()
                 result.append(expression)
             case '\n': result.append(Keyword('\n')); code = code[1:]
@@ -104,8 +102,11 @@ def rewrite(tokens: list[utils.Token], errors: list[Err]) -> list[utils.Token]:
             case list(expression):
                 for expr in rewrite(expression, errors):
                     result.append(expr)
+            case tuple(value):
+                result.append(([], [], rewrite(value[2], errors)))
             case t:
                 result.append(t)
+    if current_function is not None: result.append(current_function)
     return result
 
 type CallableWord = tuple[list[type], list[type], Callable[[list[utils.Token]], None]]
