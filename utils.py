@@ -14,19 +14,19 @@ class Keyword: word: str
 @dataclass
 class Brackets: tokens: list[Token]
 
-type Value = int | float | str | bool | list[Token]
+type Value = int | float | str | bool | tuple[list[type], list[type], list[Token]]
 type Token = Value | Word | Keyword | Brackets
 
 def format_value(value: Value) -> str:
     match value:
+        case bool(v):
+            return ansi(str(v).lower(), 35)
         case int(v):
             return ansi(str(v), 36)
         case float(v):
             return ansi(str(v), 36)
         case str(v):
             return ansi(f"'{v}'", 31)
-        case bool(v):
-            return ansi(str(v).lower(), 35)
         case list(v):
             return f'{'{'}{format_list(v)}{'}'}'
     return '' #To appease the typechecker gods.

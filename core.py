@@ -62,7 +62,7 @@ def lex(code: str, errors: list[Err]) -> list[utils.Token]:
                     continue
                 expression = result
                 result = code_stack.pop()
-                result.append(expression)
+                result.append(([], [], expression))
             case '(':
                 result_stack.append(result)
                 result = list()
@@ -82,13 +82,9 @@ def lex(code: str, errors: list[Err]) -> list[utils.Token]:
             case _:
                 value, code = lex_word(code)
                 result.append(value)
-    if len(result_stack) > 0:
-        errors.append((((0, 0), (0, 0)), "Unclosed bracket!"))
-    if len(code_stack) > 0:
-        errors.append((((0, 0), (0, 0)), "Unclosed brace!"))
-    result.append(Keyword('\n'))
-
-    return result
+    if len(result_stack) > 0: errors.append((((0, 0), (0, 0)), "Unclosed bracket!"))
+    if len(code_stack) > 0: errors.append((((0, 0), (0, 0)), "Unclosed brace!"))
+    result.append(Keyword('\n')); return result
 
 def rewrite(tokens: list[utils.Token], errors: list[Err]) -> list[utils.Token]:
     result = list()
@@ -116,15 +112,16 @@ def check(
         lexicon: dict[str, CallableWord],
         types: list[type],
         errors: list[Err],
-        overpull: bool = False
-    ) -> list[type]:
-    overpulls = list()
+        overpull: bool = False,
+        overpulls: list[type] | None = None
+    ) -> None:
+    if overpulls is None: overpulls = list()
     for token in tokens:
         match token:
             case Word(word):
                 if word not in lexicon.keys():
                     errors.append((((0,0), (0,0)), f"Word {ansi(word, 93)} is not in lexicon."))
-                    return overpulls
+                    return
                 word_types = lexicon[word][0]
                 if len(types) < len(word_types):
                     if overpull:
@@ -136,22 +133,23 @@ def check(
                         errors.append((((0,0), (0,0)),
                            f"{ansi(word, 93)} expected arguments {format_types(word_types)}, got {format_types(types)}"
                         ))
-                        return overpulls
+                        return
                 for i, t in enumerate(reversed(word_types)):
                     if not issubclass(types[len(types) - 1 - i], t):
                         errors.append((((0,0), (0,0)),
                            f"{ansi(word, 93)} expected arguments {format_types(word_types)}, got {format_types(types[len(types) - len(word_types):])}"
                         ))
-                        return overpulls
+                        return
                 for _ in word_types:
                     types.pop()
                 for t in lexicon[word][1]:
                     types.append(t)
-            case list(ts):
-                check(ts, lexicon, types, errors, True)
+            case tuple(content):
+                check(content[2], lexicon, content[1], errors, True, content[0])
+                print(format_types(content[0]), '->', format_types(content[1]))
             case value:
                 types.append(type(value))
-    return overpulls
+    return
 
 
 def run(tokens: list[utils.Token], lexicon: dict[str, CallableWord], stack: list[utils.Value] | None = None) -> None:

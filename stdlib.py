@@ -1,5 +1,5 @@
 import utils
-from core import word
+from core import word, run
 from utils import format_list
 
 builtins = {}
@@ -27,6 +27,11 @@ def peek(stack: list[utils.Value]) -> None: print(format_list(stack))
 
 @word(builtins)
 def pop(_: int) -> None: pass
+
+@word(builtins)
+def true() -> bool: return True
+@word(builtins)
+def false() -> bool: return False
 
 py_quit = quit
 @word(builtins)
