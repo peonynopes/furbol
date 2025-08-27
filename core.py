@@ -33,7 +33,21 @@ def lex_string(code: str) -> type[str, str]:
     if peek(code) == "'": return str(result), code[1:]
     return result, code
 
-SPECIAL = "():,{}"
+OPERATORS: dict[str, tuple[int, str]] = {
+    '^': (1, 'exp'),
+    '*': (2, 'mul'),
+    '/': (2, 'div'),
+    '%': (2, 'mod'),
+    '+': (3, 'add'),
+    '-': (3, 'sub'),
+    #'<<': (4, 'lshift'),
+    #'>>': (4, 'rshift'),
+    #'&': (5, 'band'),
+    #'|': (5, 'bor'),
+    #'~': (5, 'bxor'),
+}
+
+SPECIAL = "():,{}" + ''.join(OPERATORS.keys())
 def lex_word(code: str) -> type[Word, str]:
     result = ""
     while peek(code) is not None and ord(peek(code)) > 33 and peek(code) not in SPECIAL and peek(code) not in NUMBERS:
@@ -50,7 +64,6 @@ def lex(code: str, errors: list[Err]) -> list[utils.Token]:
             case "'":
                 value, code = lex_string(code)
                 result.append(value)
-            case k if k in ':;': result.append(Keyword(code[0])); code = code[1:]
             case '{':
                 code_stack.append(result)
                 result = list()
@@ -76,8 +89,7 @@ def lex(code: str, errors: list[Err]) -> list[utils.Token]:
                 result = result_stack.pop()
                 result.append(expression)
             case '\n': result.append(Keyword('\n')); code = code[1:]
-            case s if s in SPECIAL:
-                errors.append((((0,0), (0,0)), "Special characters are currently not supported.")); code = code[1:]
+            case s if s in SPECIAL: result.append(Keyword(code[0])); code = code[1:]
             case s if ord(s) < 33: code = code[1:]
             case _:
                 value, code = lex_word(code)
@@ -89,6 +101,7 @@ def lex(code: str, errors: list[Err]) -> list[utils.Token]:
 def rewrite(tokens: list[utils.Token], errors: list[Err]) -> list[utils.Token]:
     result = list()
     current_function: Word | None = None
+    operator_stack = list()
     for token in tokens:
         match token:
             case Keyword(keyword):
@@ -99,6 +112,10 @@ def rewrite(tokens: list[utils.Token], errors: list[Err]) -> list[utils.Token]:
                         result.append(current_function); current_function = None
                     case '\n':
                         if current_function is not None: result.append(current_function); current_function = None
+                    case o if o in OPERATORS.keys():
+                        while len(operator_stack) > 0 and OPERATORS[operator_stack[-1]][0] <= OPERATORS[o][0]:
+                            result.append(Word(OPERATORS[operator_stack.pop()][1]))
+                        operator_stack.append(o)
             case list(expression):
                 for expr in rewrite(expression, errors):
                     result.append(expr)
@@ -106,6 +123,9 @@ def rewrite(tokens: list[utils.Token], errors: list[Err]) -> list[utils.Token]:
                 result.append(([], [], rewrite(value[2], errors)))
             case t:
                 result.append(t)
+                while len(operator_stack) > 0 and not isinstance(t, Word):
+                    result.append(Word(OPERATORS[operator_stack.pop()][1]))
+    while len(operator_stack) > 0: result.append(Word(OPERATORS[operator_stack.pop()][1]))
     if current_function is not None: result.append(current_function)
     return result
 
