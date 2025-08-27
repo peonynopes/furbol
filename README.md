@@ -57,4 +57,18 @@ closing brace or bracket is treated as the end of line)
 or until a semicolon. This allows for chaining multiple
 functions even when one or many of them are using `:`.
 
-### Operators (Not Implemented!)
+### Operators
+Operators use a similar style of rewriting to the colon
+symbol however they trigger the rewriting by themselves
+and have the concept of precedence. Operators take an
+entire expression on their right hand side meaning they
+skip over consecutive words but not consecutive constants
+allowing for expressions like.
+
+```fur
+(n - 1) fib + (n - 2) fib
+```
+There is currently no complete list of operators as they
+are still being implemented however Furbol aims to have
+parity with [Tau](https://github.com/tau-language/tau-tmp-spec/blob/main/operators.md) operator wise.
+

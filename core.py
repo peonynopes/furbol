@@ -35,16 +35,10 @@ def lex_string(code: str) -> type[str, str]:
 
 OPERATORS: dict[str, tuple[int, str]] = {
     '^': (1, 'exp'),
-    '*': (2, 'mul'),
-    '/': (2, 'div'),
-    '%': (2, 'mod'),
-    '+': (3, 'add'),
-    '-': (3, 'sub'),
-    #'<<': (4, 'lshift'),
-    #'>>': (4, 'rshift'),
-    #'&': (5, 'band'),
-    #'|': (5, 'bor'),
-    #'~': (5, 'bxor'),
+    '*': (2, 'mul'), '/': (2, 'div'), '%': (2, 'mod'),
+    '+': (3, 'add'), '-': (3, 'sub'),
+    #'<<': (4, 'lshift'), '>>': (4, 'rshift'),
+    #'&': (5, 'band'), '|': (5, 'bor'), '~': (5, 'bxor'),
 }
 
 SPECIAL = "():,{}" + ''.join(OPERATORS.keys())
