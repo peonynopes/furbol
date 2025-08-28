@@ -131,14 +131,15 @@ def check(
         errors: list[Err],
         overpull: bool = False,
         overpulls: list[type] | None = None
-    ) -> None:
+    ) -> list[type]:
+    save_types = types[:]
     if overpulls is None: overpulls = list()
     for token in tokens:
         match token:
             case Word(word):
                 if word not in lexicon.keys():
                     errors.append((((0,0), (0,0)), f"Word {ansi(word, 93)} is not in lexicon."))
-                    return
+                    return save_types
                 word_types = lexicon[word][0]
                 if len(types) < len(word_types):
                     if overpull:
@@ -150,13 +151,13 @@ def check(
                         errors.append((((0,0), (0,0)),
                            f"{ansi(word, 93)} expected arguments {format_types(word_types)}, got {format_types(types)}"
                         ))
-                        return
+                        return save_types
                 for i, t in enumerate(reversed(word_types)):
                     if not issubclass(types[len(types) - 1 - i], t):
                         errors.append((((0,0), (0,0)),
                            f"{ansi(word, 93)} expected arguments {format_types(word_types)}, got {format_types(types[len(types) - len(word_types):])}"
                         ))
-                        return
+                        return save_types
                 for _ in word_types:
                     types.pop()
                 for t in lexicon[word][1]:
@@ -166,7 +167,7 @@ def check(
                 print(format_types(content[0]), '->', format_types(content[1]))
             case value:
                 types.append(type(value))
-    return
+    return types
 
 
 def run(tokens: list[utils.Token], lexicon: dict[str, CallableWord], stack: list[utils.Value] | None = None) -> None:

@@ -1,7 +1,9 @@
 from core import lex, run, check, rewrite
 from stdlib import builtins
-from utils import ansi
+from utils import ansi, format_list
 
+OUTPUT_TOKENS = False
+OUTPUT_REWRITE = False
 stack = list()
 types = list()
 errors = list()
@@ -12,9 +14,11 @@ while True:
     while code.count('(') > code.count(')') or code.count('{') > code.count('}'):
         code += input(ansi(f'🧶{len(str(len(stack)))*'.'}.. ', 90))
     tokens = lex(code, errors)
+    if OUTPUT_REWRITE: print(format_list(tokens))
     if len(errors) != 0: continue
     tokens = rewrite(tokens, errors)
+    if OUTPUT_REWRITE: print(format_list(tokens))
     if len(errors) != 0: continue
-    check(tokens, builtins, types, errors)
+    types = check(tokens, builtins, types, errors)
     if len(errors) != 0: continue
     run(tokens, builtins, stack)
